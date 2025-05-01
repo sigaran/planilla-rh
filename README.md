@@ -20,7 +20,7 @@ Sistema de gestión de planillas para Funeraria Promesas De Jesus, desarrollado 
 - **Lenguaje**: TypeScript
 - **UI**: Shadcn UI + Tailwind CSS
 - **Autenticación**: NextAuth.js
-- **Base de datos**: Prisma + PostgreSQL
+- **Base de datos**: Prisma + SQLite
 - **Validación**: Zod + React Hook Form
 - **Internacionalización**: next-intl
 - **Estado**: React Server Components
@@ -31,7 +31,6 @@ Sistema de gestión de planillas para Funeraria Promesas De Jesus, desarrollado 
 ## Requisitos
 
 - Node.js 18.17 o superior
-- PostgreSQL 12 o superior
 - npm o yarn
 
 ## Instalación
@@ -57,6 +56,7 @@ cp .env.example .env.local
 ```bash
 npx prisma generate
 npx prisma db push
+npx prisma db seed
 ```
 
 5. Iniciar el servidor de desarrollo:
@@ -65,6 +65,22 @@ npm run dev
 # o
 yarn dev
 ```
+
+## Usuarios Predeterminados
+
+Al ejecutar el seed, se crean los siguientes usuarios:
+
+| Correo | Contraseña | Rol |
+|--------|------------|-----|
+| admin@example.com | admin123 | ADMIN |
+| user@example.com | admin123 | USER |
+
+## Comandos de Base de Datos
+
+- `npm run db:reset` - Reinicia la base de datos (elimina datos y migraciones)
+- `npm run db:dev` - Ejecuta las migraciones en desarrollo
+- `npm run db:seed` - Carga datos iniciales (usuarios y roles)
+- `npm run db:studio` - Abre Prisma Studio para gestionar datos
 
 ## Estructura del Proyecto
 
