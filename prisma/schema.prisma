@@ -1,0 +1,187 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String   @id @default(cuid())
+  name           String?
+  email          String?  @unique
+  emailVerified  DateTime?
+  image          String?
+  passwordHash   String?
+  firstName      String?
+  lastName       String?
+  accounts       Account[]
+  sessions       Session[]
+  role           Role?    @relation(fields: [roleId], references: [id])
+  roleId         String?
+  workspaces     Workspace[]
+  workspaceMembers WorkspaceMember[]
+  employee       Employee?
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model Role {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  users       User[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  permissions Permission[]
+  permissionRoles PermissionRole[]
+  workspaceMembers WorkspaceMember[]
+}
+
+model Permission {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  roles       Role[]
+  permissionRoles PermissionRole[]
+}
+
+model PermissionRole {
+  id           String      @id @default(cuid())
+  roleId       String
+  permissionId String
+  role         Role        @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission   Permission  @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+}
+
+model Workspace {
+  id          String           @id @default(cuid())
+  name        String
+  description String?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  memberships WorkspaceMember[]
+  users       User[]
+}
+
+model WorkspaceMember {
+  id          String   @id @default(cuid())
+  userId      String
+  workspaceId String
+  roleId      String?
+  joinedAt    DateTime @default(now())
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  role        Role?     @relation(fields: [roleId], references: [id])
+}
+
+model Employee {
+  id              String    @id @default(cuid())
+  firstName       String
+  lastName        String
+  email           String    @unique
+  phone           String?
+  address         String?
+  position        String
+  department      String
+  hireDate        DateTime
+  salary          Float
+  status          String    // ACTIVE, INACTIVE, ON_LEAVE, TERMINATED
+  documents       Document[]
+  payrolls        Payroll[]
+  deductions      Deduction[]
+  benefits        Benefit[]
+  user            User?     @relation(fields: [userId], references: [id])
+  userId          String?   @unique
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+model Document {
+  id          String   @id @default(cuid())
+  type        String   // ID, CONTRACT, CERTIFICATE, OTHER
+  name        String
+  url         String
+  employee    Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  employeeId  String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Payroll {
+  id          String   @id @default(cuid())
+  month       Int
+  year        Int
+  status      String   // PENDING, APPROVED, PAID, CANCELLED
+  employee    Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  employeeId  String
+  deductions  Deduction[]
+  benefits    Benefit[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([employeeId, month, year])
+}
+
+model Deduction {
+  id          String   @id @default(cuid())
+  type        String   // TAX, INSURANCE, LOAN, OTHER
+  amount      Float
+  description String?
+  employee    Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  employeeId  String
+  payroll     Payroll? @relation(fields: [payrollId], references: [id])
+  payrollId   String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Benefit {
+  id          String   @id @default(cuid())
+  type        String   // HEALTH_INSURANCE, LIFE_INSURANCE, BONUS, ALLOWANCE, OTHER
+  amount      Float
+  description String?
+  employee    Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  employeeId  String
+  payroll     Payroll? @relation(fields: [payrollId], references: [id])
+  payrollId   String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
