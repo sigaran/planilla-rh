@@ -54,9 +54,8 @@ cp .env.example .env.local
 
 4. Configurar la base de datos:
 ```bash
-npx prisma generate
-npx prisma db push
-npx prisma db seed
+npm run db:dev
+npm run db:seed
 ```
 
 5. Iniciar el servidor de desarrollo:
@@ -74,13 +73,6 @@ Al ejecutar el seed, se crean los siguientes usuarios:
 |--------|------------|-----|
 | admin@example.com | admin123 | ADMIN |
 | user@example.com | admin123 | USER |
-
-## Comandos de Base de Datos
-
-- `npm run db:reset` - Reinicia la base de datos (elimina datos y migraciones)
-- `npm run db:dev` - Ejecuta las migraciones en desarrollo
-- `npm run db:seed` - Carga datos iniciales (usuarios y roles)
-- `npm run db:studio` - Abre Prisma Studio para gestionar datos
 
 ## Estructura del Proyecto
 
@@ -102,7 +94,10 @@ src/
 - `npm run build` - Construye la aplicación para producción
 - `npm run start` - Inicia la aplicación en modo producción
 - `npm run lint` - Ejecuta el linter
-- `npm run format` - Formatea el código con Prettier
+- `npm run db:reset` - Reinicia la base de datos (elimina datos y migraciones)
+- `npm run db:dev` - Ejecuta las migraciones en desarrollo
+- `npm run db:seed` - Carga datos iniciales (usuarios y roles)
+- `npm run db:studio` - Abre Prisma Studio para gestionar datos
 
 ## Contribución
 
