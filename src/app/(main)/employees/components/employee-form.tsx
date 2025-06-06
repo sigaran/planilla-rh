@@ -75,21 +75,32 @@ export function EmployeeForm({ onSubmit }: EmployeeFormProps) {
   });
 
   async function handleSubmit(data: EmployeeFormValues) {
-    try {
-      await onSubmit(data);
-      toast({
-        title: "Empleado creado",
-        description: "El empleado ha sido creado exitosamente.",
-      });
-      router.push("/employees");
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Hubo un error al crear el empleado.",
-        variant: "destructive",
-      });
-    }
+  try {
+    const response = await fetch("/api/auth/employees", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) throw new Error("Error al crear empleado");
+
+    toast({
+      title: "Empleado creado",
+      description: "El empleado ha sido creado exitosamente.",
+    });
+
+    router.push("/employees");
+    router.refresh(); //recarga la pagina de empleados
+  } catch (error) {
+    toast({
+      title: "Error",
+      description: "Hubo un error al crear el empleado.",
+      variant: "destructive",
+    });
   }
+}
 
   return (
     <Form {...form}>
