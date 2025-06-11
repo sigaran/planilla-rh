@@ -6,9 +6,8 @@ export const routes = {
   forgotPassword: '/auth/forgot-password',
   resetPassword: '/auth/reset-password',
   employees: '/employees',
+  attendance: '/attendance',
   payroll: '/payroll',
-  deductions: '/deductions',
-  benefits: '/benefits',
   settings: '/settings',
   profile: '/profile',
   help: '/help',
@@ -21,9 +20,8 @@ export type Route = typeof routes[keyof typeof routes];
 export const navigationKeys = {
   dashboard: 'dashboard',
   employees: 'employees',
+  attendance: 'attendance',
   payroll: 'payroll',
-  deductions: 'deductions',
-  benefits: 'benefits',
   settings: 'settings',
   help: 'help',
   profile: 'profile',
@@ -34,9 +32,8 @@ export const navigationKeys = {
 export const navigationItems = [
   { key: navigationKeys.dashboard, href: routes.dashboard, icon: 'HomeIcon' },
   { key: navigationKeys.employees, href: routes.employees, icon: 'PersonIcon' },
+  { key: navigationKeys.attendance, href: routes.attendance, icon: 'ClockIcon' },
   { key: navigationKeys.payroll, href: routes.payroll, icon: 'FileIcon' },
-  { key: navigationKeys.deductions, href: routes.deductions, icon: 'MinusIcon' },
-  { key: navigationKeys.benefits, href: routes.benefits, icon: 'PlusIcon' },
   { key: navigationKeys.settings, href: routes.settings, icon: 'GearIcon' },
   { key: navigationKeys.help, href: routes.help, icon: 'QuestionMarkIcon' }
 ] as const; 

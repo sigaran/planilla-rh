@@ -119,15 +119,45 @@ model Employee {
   email           String    @unique
   phone           String?
   address         String?
+  
+  // Documentos de identificación El Salvador
+  dui             String    @unique // Documento Único de Identidad
+  nit             String    @unique // Número de Identificación Tributaria
+  isssNumber      String    @unique // Número ISSS
+  afpNumber       String    // Número AFP
+  afpName         String    // Nombre de la AFP (Crecer, Confía, etc.)
+  
+  // Información personal adicional
+  birthDate       DateTime
+  gender          String    // M, F
+  
+  // Información laboral
   position        String
   department      String
   hireDate        DateTime
-  salary          Float
+  endDate         DateTime?
+  salary          Float     // Salario base mensual
   status          String    // ACTIVE, INACTIVE, ON_LEAVE, TERMINATED
+  
+  // Información bancaria
+  bankName        String?
+  accountNumber   String?
+  paymentMethod   String    @default("TRANSFER") // TRANSFER, CHECK, CASH
+  
+  // Código único de empleado para asistencias
+  employeeCode    String?   @unique
+  
+  // Horario de trabajo
+  workSchedule    WorkSchedule? @relation(fields: [workScheduleId], references: [id])
+  workScheduleId  String?
+  
   documents       Document[]
   payrolls        Payroll[]
   deductions      Deduction[]
   benefits        Benefit[]
+  attendanceRecords AttendanceRecord[]
+  attendanceRequests AttendanceRequest[]
+  approvedRequests AttendanceRequest[] @relation("ApprovedBy")
   user            User?     @relation(fields: [userId], references: [id])
   userId          String?   @unique
   createdAt       DateTime  @default(now())
@@ -146,16 +176,56 @@ model Document {
 }
 
 model Payroll {
-  id          String   @id @default(cuid())
-  month       Int
-  year        Int
-  status      String   // PENDING, APPROVED, PAID, CANCELLED
-  employee    Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
-  employeeId  String
-  deductions  Deduction[]
-  benefits    Benefit[]
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id                String   @id @default(cuid())
+  month             Int
+  year              Int
+  period            String   // "Enero 2024", "Febrero 2024", etc.
+  status            String   // PENDING, APPROVED, PAID, CANCELLED
+  
+  employee          Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  employeeId        String
+  
+  // Salarios y compensaciones
+  baseSalary        Float    // Salario base mensual
+  ordinaryHours     Float    @default(0) // Horas ordinarias trabajadas
+  overtimeHours     Float    @default(0) // Horas extraordinarias
+  overtimeAmount    Float    @default(0) // Monto por horas extras
+  bonifications     Float    @default(0) // Bonificaciones
+  aguinaldo         Float    @default(0) // Aguinaldo
+  vacationDays      Float    @default(0) // Días de vacaciones disfrutados
+  vacationAmount    Float    @default(0) // Monto por vacaciones
+  otherIncome       Float    @default(0) // Otras prestaciones monetarias
+  
+  // Cálculo de ingresos brutos
+  grossSalary       Float    // Salario bruto total
+  
+  // Deducciones obligatorias del empleado
+  afpEmployeeAmount Float    @default(0) // 7.25% empleado
+  isssEmployeeAmount Float   @default(0) // 3% empleado (hasta tope)
+  rentTax           Float    @default(0) // ISR según tabla de retenciones
+  
+  // Deducciones opcionales
+  personalLoans     Float    @default(0) // Préstamos personales
+  unionFees         Float    @default(0) // Cuotas sindicales
+  privateInsurance  Float    @default(0) // Seguros privados
+  cooperativeFees   Float    @default(0) // Cuotas cooperativas
+  otherDeductions   Float    @default(0) // Otras deducciones autorizadas
+  
+  // Total deducciones
+  totalDeductions   Float    // Total de todas las deducciones
+  
+  // Aportes patronales (solo para información)
+  afpEmployerAmount Float    @default(0) // 7.75% empleador
+  isssEmployerAmount Float   @default(0) // 7.5% empleador
+  insaforpAmount    Float    @default(0) // 1% empleador (empresas +10 empleados)
+  
+  // Salario neto
+  netSalary         Float    // Salario neto a pagar
+  
+  deductions        Deduction[]
+  benefits          Benefit[]
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 
   @@unique([employeeId, month, year])
 }
@@ -184,4 +254,83 @@ model Benefit {
   payrollId   String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+// Horarios de trabajo
+model WorkSchedule {
+  id                  String     @id @default(cuid())
+  name                String     // "Horario Administrativo", "Horario Operativo"
+  startTime           String     // "08:00"
+  endTime             String     // "17:00"
+  lunchStart          String?    // "12:00"
+  lunchEnd            String?    // "13:00"
+  workDays            String     // "1,2,3,4,5" (Lunes a Viernes)
+  isFlexible          Boolean    @default(false)
+  flexibilityMinutes  Int        @default(0) // +/- minutos de tolerancia
+  totalHours          Float      @default(8.0) // 8 horas diarias
+  
+  employees           Employee[]
+  createdAt           DateTime   @default(now())
+  updatedAt           DateTime   @updatedAt
+}
+
+// Registros de asistencia
+model AttendanceRecord {
+  id                      String   @id @default(cuid())
+  employeeId              String
+  date                    DateTime // Fecha del registro
+  
+  // Horarios
+  checkIn                 String?  // "08:00"
+  checkOut                String?  // "17:00"
+  lunchStart              String?  // "12:00"
+  lunchEnd                String?  // "13:00"
+  
+  // Estado y cálculos
+  status                  String   // PRESENT, LATE, ABSENT_JUSTIFIED, etc.
+  lateMinutes             Int      @default(0)
+  earlyDepartureMinutes   Int      @default(0)
+  workedHours             Float    @default(0)
+  overtimeHours           Float    @default(0)
+  
+  // Información adicional
+  notes                   String?
+  registrationMethod      String   @default("MANUAL") // MANUAL, BIOMETRIC, CARD, APP, SYSTEM
+  approvedBy              String?  // ID del supervisor
+  approvedAt              DateTime?
+  
+  employee                Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+  
+  @@unique([employeeId, date])
+}
+
+// Solicitudes de permisos y ausencias
+model AttendanceRequest {
+  id              String   @id @default(cuid())
+  employeeId      String
+  type            String   // VACATION, SICK_LEAVE, PERSONAL_LEAVE, etc.
+  status          String   @default("PENDING") // PENDING, APPROVED, REJECTED, CANCELLED
+  
+  // Fechas
+  startDate       DateTime
+  endDate         DateTime
+  totalDays       Int
+  
+  // Detalles
+  reason          String
+  comments        String?
+  attachments     String?  // JSON array de URLs
+  
+  // Aprobación
+  requestedAt     DateTime @default(now())
+  reviewedBy      String?  // ID del supervisor
+  reviewedAt      DateTime?
+  reviewComments  String?
+  
+  employee        Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  reviewer        Employee? @relation("ApprovedBy", fields: [reviewedBy], references: [id])
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 }

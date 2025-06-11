@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { TypographyLarge } from '@/components/typography';
-import { ChevronDown, Home, User, FileText, MinusCircle, PlusCircle, Settings, HelpCircle, LogOut, Sun, Moon } from 'lucide-react';
+import { ChevronDown, Home, User, Clock, FileText, Settings, HelpCircle, LogOut, Sun, Moon } from 'lucide-react';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -80,22 +80,16 @@ export function MainSidebar() {
             href: routes.employees,
         },
         {
+            id: 'attendance',
+            key: 'Asistencias',
+            icon: <Clock className="w-5 h-5" />,
+            href: routes.attendance,
+        },
+        {
             id: 'payroll',
             key: navigationKeys.payroll,
             icon: <FileText className="w-5 h-5" />,
             href: routes.payroll,
-        },
-        {
-            id: 'deductions',
-            key: navigationKeys.deductions,
-            icon: <MinusCircle className="w-5 h-5" />,
-            href: routes.deductions,
-        },
-        {
-            id: 'benefits',
-            key: navigationKeys.benefits,
-            icon: <PlusCircle className="w-5 h-5" />,
-            href: routes.benefits,
         },
         {
             id: 'settings',
