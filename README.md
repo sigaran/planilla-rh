@@ -43,19 +43,23 @@ git clone https://github.com/WillianChavez/planillas.git
 2. Instalar dependencias:
 ```bash
 npm install
+npm install -D tsx
 # o
 yarn install
 ```
 
 3. Configurar variables de entorno:
 ```bash
-cp .env.example .env.local
+copy .env.example .env
 ```
 
 4. Configurar la base de datos:
 ```bash
 npm run db:dev
 npm run db:seed
+# Si npm run db: seed da error:
+# Desde .../prisma/ ejecutar
+npx tsx seed.ts
 ```
 
 5. Iniciar el servidor de desarrollo:
